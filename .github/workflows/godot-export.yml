@@ -30,7 +30,7 @@ jobs:
         working-directory: dhaka-run
         run: |
           cp ~/.android/debug.keystore ./debug.keystore
-          sed -i 's|keystore/debug=""|keystore/debug="res://debug.keystore"|' export_presets.cfg
+          sed -i "s|keystore/debug=\"\"|keystore/debug=\"$HOME/.android/debug.keystore\"|" export_presets.cfg
           sed -i 's|keystore/debug_user=""|keystore/debug_user="androiddebugkey"|' export_presets.cfg
           sed -i 's|keystore/debug_password=""|keystore/debug_password="android"|' export_presets.cfg
           sed -i 's/gradle_build\/use_gradle_build=true/gradle_build\/use_gradle_build=false/' export_presets.cfg
