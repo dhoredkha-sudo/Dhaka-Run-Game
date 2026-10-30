@@ -26,9 +26,11 @@ jobs:
         run: |
           mkdir -p ~/.android
           keytool -genkey -v -keystore ~/.android/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug, OU=Android, O=Android, L=Unknown, ST=Unknown, C=US"
-      - name: Install Android build template
+      - name: Use prebuilt Android template
         working-directory: dhaka-run
-        run: godot --headless --install-android-build-template
+        run: |
+          sed -i 's/gradle_build\/use_gradle_build=true/gradle_build\/use_gradle_build=false/' export_presets.cfg
+          grep 'gradle_build/use_gradle_build=false' export_presets.cfg
       - name: Import and export APK
         working-directory: dhaka-run
         run: |
