@@ -26,6 +26,11 @@ jobs:
         run: |
           mkdir -p ~/.android
           keytool -genkey -v -keystore ~/.android/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug, OU=Android, O=Android, L=Unknown, ST=Unknown, C=US"
+      - name: Add ETC2/ASTC import setting
+        working-directory: dhaka-run
+        run: |
+          sed -i '/^\[rendering\]/a textures/vram_compression/import_etc2_astc=true' project.godot
+          grep -n 'textures/vram_compression/import_etc2_astc' project.godot
       - name: Configure prebuilt preset
         working-directory: dhaka-run
         run: |
@@ -37,6 +42,36 @@ jobs:
           sed -i 's|gradle_build/min_sdk="[^"]*"|gradle_build/min_sdk=""|' export_presets.cfg
           sed -i 's|gradle_build/target_sdk="[^"]*"|gradle_build/target_sdk=""|' export_presets.cfg
           grep -E 'gradle_build/use_gradle_build|keystore/debug|gradle_build/min_sdk|gradle_build/target_sdk' export_presets.cfg
+      - name: Set Godot Android SDK paths
+        run: |
+          echo "JAVA_HOME=${JAVA_HOME:-<empty>}"
+          echo "ANDROID_HOME=${ANDROID_HOME:-<empty>}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-<empty>}"
+          JAVA_DIR="$JAVA_HOME"
+          if [ -z "$JAVA_DIR" ] || [ ! -d "$JAVA_DIR" ]; then
+            if [ -d /usr/lib/jvm/temurin-17-jdk-amd64 ]; then
+              JAVA_DIR=/usr/lib/jvm/temurin-17-jdk-amd64
+            fi
+          fi
+          SDK_DIR="$ANDROID_HOME"
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            SDK_DIR="$ANDROID_SDK_ROOT"
+          fi
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            if [ -d /usr/lib/android-sdk ]; then
+              SDK_DIR=/usr/lib/android-sdk
+            fi
+          fi
+          echo "Using Java path: $JAVA_DIR"
+          echo "Using Android SDK path: $SDK_DIR"
+          mkdir -p ~/.config/godot
+          SETTINGS="$HOME/.config/godot/editor_settings-4.2.tres"
+          if [ ! -f "$SETTINGS" ]; then
+            printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\n' > "$SETTINGS"
+          fi
+          sed -i '/export\/android\/android_sdk_path/d; /export\/android\/java_sdk_path/d' "$SETTINGS"
+          printf 'export/android/android_sdk_path = "%s"\nexport/android/java_sdk_path = "%s"\n' "$SDK_DIR" "$JAVA_DIR" >> "$SETTINGS"
+          cat "$SETTINGS"
       - name: Import and export APK
         working-directory: dhaka-run
         run: |
