@@ -26,23 +26,28 @@ jobs:
         run: |
           mkdir -p ~/.android
           keytool -genkey -v -keystore ~/.android/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug, OU=Android, O=Android, L=Unknown, ST=Unknown, C=US"
-      - name: Configure debug keystore in preset
+      - name: Configure Gradle preset
         working-directory: dhaka-run
         run: |
           cp ~/.android/debug.keystore ./debug.keystore
-          sed -i 's/gradle_build\/use_gradle_build=true/gradle_build\/use_gradle_build=false/' export_presets.cfg
           sed -i 's|keystore/debug=""|keystore/debug="res://debug.keystore"|' export_presets.cfg
           sed -i 's|keystore/debug_user=""|keystore/debug_user="androiddebugkey"|' export_presets.cfg
           sed -i 's|keystore/debug_password=""|keystore/debug_password="android"|' export_presets.cfg
-          sed -i 's|gradle_build/min_sdk="21"|gradle_build/min_sdk=""|' export_presets.cfg
-          sed -i 's|gradle_build/target_sdk="34"|gradle_build/target_sdk=""|' export_presets.cfg
+          sed -i 's|gradle_build/min_sdk="[^"]*"|gradle_build/min_sdk="21"|' export_presets.cfg
+          sed -i 's|gradle_build/target_sdk="[^"]*"|gradle_build/target_sdk="34"|' export_presets.cfg
+          sed -i 's/gradle_build\/use_gradle_build=false/gradle_build\/use_gradle_build=true/' export_presets.cfg
           grep -E 'gradle_build/use_gradle_build|keystore/debug|gradle_build/min_sdk|gradle_build/target_sdk' export_presets.cfg
+      - name: Import project
+        working-directory: dhaka-run
+        run: godot --headless --import
+      - name: Install Android build template
+        working-directory: dhaka-run
+        run: timeout 300 godot --headless --install-android-build-template || echo "TEMPLATE_INSTALL_EXIT:$?"
       - name: Import and export APK
         working-directory: dhaka-run
         run: |
-          godot --headless --import
           mkdir -p ../build
-          godot --headless --export-debug "Android" ../build/dhaka-run.apk
+          godot --headless --verbose --export-debug "Android" ../build/dhaka-run.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
