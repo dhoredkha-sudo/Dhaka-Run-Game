@@ -34,7 +34,9 @@ jobs:
           sed -i 's|keystore/debug=""|keystore/debug="res://debug.keystore"|' export_presets.cfg
           sed -i 's|keystore/debug_user=""|keystore/debug_user="androiddebugkey"|' export_presets.cfg
           sed -i 's|keystore/debug_password=""|keystore/debug_password="android"|' export_presets.cfg
-          grep -E 'gradle_build/use_gradle_build|keystore/debug' export_presets.cfg
+          sed -i 's|gradle_build/min_sdk="21"|gradle_build/min_sdk=""|' export_presets.cfg
+          sed -i 's|gradle_build/target_sdk="34"|gradle_build/target_sdk=""|' export_presets.cfg
+          grep -E 'gradle_build/use_gradle_build|keystore/debug|gradle_build/min_sdk|gradle_build/target_sdk' export_presets.cfg
       - name: Import and export APK
         working-directory: dhaka-run
         run: |
